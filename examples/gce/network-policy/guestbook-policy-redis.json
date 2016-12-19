@@ -1,0 +1,38 @@
+{
+  "apiVersion": "extensions/v1beta1",
+  "kind": "NetworkPolicy",
+  "metadata": {
+    "annotations": {
+      "io.cilium.name": "k8s-app",
+      "io.cilium.parent": "io.cilium.k8s"
+    },
+    "name": "guestbook-redis"
+  },
+  "spec": {
+    "podSelector": {
+      "matchLabels": {
+        "guestbook": "redis"
+      }
+    },
+    "ingress": [
+      {
+        "from": [
+          {
+            "podSelector": {
+              "matchLabels": {
+                "guestbook": "redis"
+              }
+            }
+          },
+          {
+            "podSelector": {
+              "matchLabels": {
+                "guestbook": "web"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
