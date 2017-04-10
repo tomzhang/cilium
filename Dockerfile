@@ -56,8 +56,11 @@ apt-get purge --auto-remove -y gcc make bison flex git curl xz-utils && \
 apt-get install -y --no-install-recommends libgcc-5-dev binutils && \
 apt-get clean && \
 rm -fr /root /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/local/go && \
-echo '#!/usr/bin/env bash\ncp /opt/cni/bin/cilium-cni /tmp/cni/bin && /usr/bin/cilium-agent $@' > /home/with-cni.sh && \
-chmod +x /home/with-cni.sh
+echo '#!/usr/bin/env bash\nCILIUM_SOCK=/var/run/cilium/cilium.sock /opt/cni/bin/cilium-cni $@' > /home/cni-wrapper && \
+echo '#!/usr/bin/env bash\ncp /home/cni-wrapper /tmp/cni/bin/cilium-cni && \
+/usr/bin/cilium-agent $@' > /home/with-cni.sh && \
+chmod +x /home/with-cni.sh && \
+chmod +x /home/cni-wrapper
 
 ENV PATH="/usr/local/clang+llvm/bin:$PATH"
 ENV INITSYSTEM="SYSTEMD"
