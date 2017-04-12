@@ -132,6 +132,15 @@ func (t *Tree) ResolveL4Policy(ctx *SearchContext) *L4Policy {
 	return result
 }
 
+func removeRootPrefix(path string) string {
+	cut := JoinPath(RootNodeName, "")
+	if strings.HasPrefix(path, cut) {
+		path = strings.TrimPrefix(path, cut)
+	}
+
+	return path
+}
+
 // Lookup returns a policy node and its parent for a given path
 func (t *Tree) Lookup(path string) (node, parent *Node) {
 	// Empty tree
@@ -143,11 +152,9 @@ func (t *Tree) Lookup(path string) (node, parent *Node) {
 		return t.Root, nil
 	}
 
-	cut := JoinPath(RootNodeName, "")
-	if strings.HasPrefix(path, cut) {
-		path = strings.TrimPrefix(path, cut)
-	}
+	path = removeRootPrefix(path)
 
+	// "root." returns root node
 	if path == "" {
 		return t.Root, nil
 	}
@@ -157,14 +164,13 @@ func (t *Tree) Lookup(path string) (node, parent *Node) {
 
 	elements := strings.Split(path, NodePathDelimiter)
 	for index, nodeName := range elements {
-		log.Debugf("Looking for %s in %+v", nodeName, node)
 		if child, ok := node.Children[nodeName]; ok {
 			parent = node
 			node = child
 		} else {
 			// Return parent if we failed at last element
-			if index == len(elements)-1 {
-				return nil, parent
+			if index > 0 && index == len(elements)-1 {
+				return nil, node
 			}
 			return nil, nil
 		}
