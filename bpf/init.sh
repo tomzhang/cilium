@@ -30,10 +30,10 @@ set -e
 set -x
 
 # Enable JIT
-echo 1 > /proc/sys/net/core/bpf_jit_enable
+echo 1 > /proc/sys/net/core/bpf_jit_enable || true
 
 # Disable rp_filter
-echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter || true
 
 function mac2array()
 {
