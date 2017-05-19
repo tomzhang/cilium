@@ -1,0 +1,21 @@
+apiVersion: "cilium.io/v1"
+kind: CiliumNetworkPolicy
+description: "My awesome custom cilium policy rule"
+metadata:
+  name: "rule1"
+spec:
+  endpointSelector:
+    matchLabels: 
+      "k8s:role": backend
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        "k8s:role": frontend
+      toPorts:
+      - ports:
+        - port: 80
+          protocol: TCP
+        rules:
+          HTTP:
+          - method: "GET"
+            path: "/public"
