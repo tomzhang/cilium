@@ -685,6 +685,27 @@ struct bpf_elf_map __section_maps POLICY_MAP = {
 	.max_elem	= 1024,
 };
 
+#ifdef CIDR6_INGRESS_MAP
+struct bpf_elf_map __section_maps CIDR6_INGRESS_MAP = {
+	.type		= BPF_MAP_TYPE_LPM_TRIE,
+	.size_key	= sizeof(struct bpf_lpm_trie_key) + sizeof(union v6addr),
+	.size_value	= sizeof(struct policy_entry),
+	.pinning	= PIN_GLOBAL_NS,
+	.max_elem	= 1024,
+	.flags		= BPF_F_NO_PREALLOC,
+};
+#endif
+#ifdef CIDR4_INGRESS_MAP
+struct bpf_elf_map __section_maps CIDR4_INGRESS_MAP = {
+	.type		= BPF_MAP_TYPE_LPM_TRIE,
+	.size_key	= sizeof(struct bpf_lpm_trie_key) + sizeof(__u32),
+	.size_value	= sizeof(struct policy_entry),
+	.pinning	= PIN_GLOBAL_NS,
+	.max_elem	= 1024,
+	.flags		= BPF_F_NO_PREALLOC,
+};
+#endif
+
 static inline int __inline__ ipv6_policy(struct __sk_buff *skb, int ifindex, __u32 src_label)
 {
 	struct ipv6_ct_tuple tuple = {};
@@ -749,7 +770,7 @@ static inline int __inline__ ipv6_policy(struct __sk_buff *skb, int ifindex, __u
 	 * passed through the allowed consumer. */
 	/* FIXME: Add option to disable policy accounting and avoid policy
 	 * lookup if policy accounting is disabled */
-	verdict = policy_can_access(&POLICY_MAP, skb, src_label);
+	verdict = policy_can_access(&POLICY_MAP, skb, src_label, sizeof(ip6->saddr), &ip6->saddr);
 	if (unlikely(ret == CT_NEW)) {
 		if (verdict != TC_ACT_OK)
 			return DROP_POLICY;
@@ -842,7 +863,7 @@ static inline int __inline__ ipv4_policy(struct __sk_buff *skb, int ifindex, __u
 
 	/* Policy lookup is done on every packet to account for packets that
 	 * passed through the allowed consumer. */
-	verdict = policy_can_access(&POLICY_MAP, skb, src_label);
+	verdict = policy_can_access(&POLICY_MAP, skb, src_label, sizeof(ip4->saddr), &ip4->saddr);
 	if (unlikely(ret == CT_NEW)) {
 		if (verdict != TC_ACT_OK)
 			return DROP_POLICY;
